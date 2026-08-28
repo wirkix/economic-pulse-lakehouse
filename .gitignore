@@ -1,0 +1,14 @@
+.env
+docker/ca-certs/*.crt
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+data/
+*.duckdb
+*.hyper
+hyperd.log
+airflow/logs/
+minio-data/
+postgres-data/
+.DS_Store

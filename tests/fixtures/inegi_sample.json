@@ -1,0 +1,14 @@
+{
+  "is_fallback": false,
+  "label": "poblacion_total_placeholder",
+  "Series": [
+    {
+      "INDICADOR": "1002000001",
+      "OBSERVATIONS": [
+        {"TIME_PERIOD": "2026/04", "OBS_VALUE": "129123456"},
+        {"TIME_PERIOD": "2026/05", "OBS_VALUE": "129201233"},
+        {"TIME_PERIOD": "2026/06", "OBS_VALUE": ""}
+      ]
+    }
+  ]
+}

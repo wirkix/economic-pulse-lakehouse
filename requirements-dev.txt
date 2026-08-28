@@ -1,0 +1,8 @@
+# Host .venv — pure-Python pieces only (extract clients, config, pytest).
+# PySpark/Airflow never run on the host; they run inside Docker, which
+# bundles its own Python (see CLAUDE.md "Local dev environment" for why).
+requests==2.32.3
+boto3==1.35.36
+python-dotenv==1.0.1
+duckdb==1.1.3
+pytest==8.3.3

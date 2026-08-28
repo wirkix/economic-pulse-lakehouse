@@ -1,0 +1,24 @@
+{
+  "is_fallback": false,
+  "bmx": {
+    "series": [
+      {
+        "idSerie": "SF43718",
+        "titulo": "Tipo de cambio FIX",
+        "datos": [
+          {"fecha": "01/06/2026", "dato": "17.8501"},
+          {"fecha": "02/06/2026", "dato": "N/E"},
+          {"fecha": "03/06/2026", "dato": "17.9012"}
+        ]
+      },
+      {
+        "idSerie": "SP1",
+        "titulo": "INPC general",
+        "datos": [
+          {"fecha": "01/05/2026", "dato": "132.401"},
+          {"fecha": "01/06/2026", "dato": "132.998"}
+        ]
+      }
+    ]
+  }
+}
