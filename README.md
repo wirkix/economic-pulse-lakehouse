@@ -143,12 +143,18 @@ skips them cleanly instead of erroring.
 
 - `extract/inegi.py`'s `INDICATORS` list ships with only INEGI's own
   documentation example indicator ID (national population) as a
-  placeholder — not IGAE or the unemployment rate. See that file's
-  docstring for how to swap in the real codes once `INEGI_TOKEN` exists.
+  placeholder — not IGAE or the unemployment rate. Confirmed pulling real
+  data with a live `INEGI_TOKEN` (`is_fallback: false`, real observations
+  back to 1910), but real IGAE/unemployment codes still need manual lookup
+  — see that file's docstring for what's been tried and ruled out.
 - Tableau Public's scheduled-refresh feature needs a paid/Server tier;
   refreshing the published viz with new data is a manual re-publish (see
   `tableau/REPORT_SPEC.md`'s Publish section) — an accepted tradeoff for
   staying at $0.
 - `gold_wide`'s forward-fill leaves genuine leading nulls before an
   indicator's first real observation (not backfilled) — correct behavior,
-  not a bug; see the comment in `transform/silver_to_gold.py`.
+  not a bug; see the comment in `transform/silver_to_gold.py`. Its
+  calendar is also trimmed to a recent window (`RECENT_WINDOW_DAYS`, see
+  that same file) after forward-fill — a sparse, decades-old indicator
+  otherwise blows the row count up hugely; `indicators_long` keeps each
+  indicator's full history regardless.

@@ -38,7 +38,10 @@ def build_gold_long(silver: DataFrame) -> DataFrame:
     )
 
 
-def build_gold_wide(silver: DataFrame, spark: SparkSession) -> DataFrame:
+RECENT_WINDOW_DAYS = 400  # matches extract/run.py's own LOOKBACK_DAYS
+
+
+def build_gold_wide(silver: DataFrame, spark: SparkSession, recent_window_days: int = RECENT_WINDOW_DAYS) -> DataFrame:
     labels = [r["indicator_label"] for r in silver.select("indicator_label").distinct().collect()]
     if not labels:
         return spark.createDataFrame([], "calendar_date date")
@@ -61,4 +64,16 @@ def build_gold_wide(silver: DataFrame, spark: SparkSession) -> DataFrame:
     # null after forward-fill (nothing to carry forward yet) — that's
     # correct, not a bug: Tableau/DuckDB consumers should treat leading
     # nulls as "series hadn't started" rather than back-filled.
-    return wide.orderBy("calendar_date")
+    #
+    # The calendar itself, though, spans every indicator's full history —
+    # mixing a daily/monthly series with even one sparse, decades-old
+    # annual one (e.g. a historical population figure) blows this up to
+    # tens of thousands of mostly-null rows (hit in practice: one 1910-
+    # onward annual series turned a ~400-row table into 42,609). ffill is
+    # computed over the *full* calendar first (so old real observations
+    # still correctly seed the fill), then trimmed to the last
+    # `recent_window_days` — this table is meant as a recent daily pulse,
+    # not a full archive; indicators_long keeps full history per indicator
+    # regardless of this table's window.
+    cutoff = F.date_sub(F.lit(date_bounds["max_d"]), recent_window_days)
+    return wide.filter(F.col("calendar_date") >= cutoff).orderBy("calendar_date")

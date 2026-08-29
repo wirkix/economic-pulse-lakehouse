@@ -31,17 +31,29 @@ def test_parse_banxico_record_skips_missing_and_conforms_shape():
 def test_parse_inegi_record_skips_blank_value():
     rows = parse_inegi_record(_load("inegi_sample.json"))
 
-    assert len(rows) == 2  # third observation has "" and is dropped
-    assert rows[0]["obs_date"] == "2026-04-01"
-    assert rows[0]["indicator_label"] == "poblacion_total_placeholder"
-    assert rows[0]["value"] == 129123456.0
+    # 4 observations in the fixture minus 1 blank OBS_VALUE = 3.
+    assert len(rows) == 3
+    assert rows[0]["obs_date"] == "1990-01-01"
+    assert rows[1]["obs_date"] == "2026-04-01"
+    assert rows[1]["indicator_label"] == "poblacion_total_placeholder"
+    assert rows[1]["value"] == 129123456.0
+
+
+def test_parse_inegi_record_handles_bare_year_periods():
+    """Annual indicators (e.g. historical population) publish
+    TIME_PERIOD as a bare "YYYY", not "YYYY/MM" — this used to silently
+    drop every observation from such an indicator (see transform/parse.py
+    comment)."""
+    rows = parse_inegi_record(_load("inegi_sample.json"))
+    annual_row = next(r for r in rows if r["obs_date"] == "1990-01-01")
+    assert annual_row["value"] == 81249645.0
 
 
 def test_parse_bronze_combines_both_sources():
     rows = parse_bronze([_load("banxico_sample.json")], [_load("inegi_sample.json")])
     sources = {r["source"] for r in rows}
     assert sources == {"banxico", "inegi"}
-    assert len(rows) == 6
+    assert len(rows) == 7
 
 
 def test_fallback_flag_propagates():

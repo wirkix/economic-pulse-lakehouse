@@ -127,6 +127,25 @@ mechanism is generic, only the cert differs.
   `requirements-dev.txt` — the Spark-dependent tests only run in this
   image).
 
+- `transform/parse.py`'s INEGI parser must handle bare `"YYYY"`
+  `TIME_PERIOD` values (annual indicators, e.g. the historical population
+  placeholder), not just `"YYYY/MM"` (monthly) — the missing case used to
+  silently drop *every* observation from an annual indicator (empty
+  `month` string failed `int()`, caught by the same broad `except
+  ValueError` that also legitimately skips malformed periods), so the
+  indicator would just never appear anywhere downstream with no error at
+  all. Caught by noticing INEGI rows were 0 in gold despite a real,
+  `is_fallback=False` bronze pull.
+
+- `transform/silver_to_gold.py`'s `build_gold_wide` must bound its output
+  to a recent window (`RECENT_WINDOW_DAYS`, applied *after* forward-fill
+  so old real observations still correctly seed it) — the dense daily
+  calendar spans every indicator's full history otherwise, and mixing
+  even one sparse, decades-old annual series with a daily/monthly one
+  blows the row count up hugely (hit in practice: INEGI's 1910-onward
+  placeholder turned a ~400-row table into 42,609). `indicators_long`
+  keeps full history per indicator regardless of this table's window.
+
 - DuckDB relations must come from `duckdb.sql(...)` (the module-level
   default connection), not a fresh `duckdb.connect()` per call —
   `query/duckdb_gold.py` hit `ConnectionException: Connection has already

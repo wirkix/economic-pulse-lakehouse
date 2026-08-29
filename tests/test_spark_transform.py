@@ -64,3 +64,27 @@ def test_build_gold_wide_forward_fills(spark):
 
     assert len(wide) == 3  # dense calendar across the 3 observed days
     assert [r["fx_rate_usd_mxn"] for r in wide] == [17.80, 17.90, 18.00]
+
+
+def test_build_gold_wide_trims_calendar_for_a_far_past_sparse_indicator(spark):
+    """A decades-old annual indicator (real case: INEGI population data
+    going back to 1910) must not blow the dense daily calendar out to
+    tens of thousands of rows — only the recent window matters here, and
+    the old indicator's last real value should still be carried into it
+    via forward-fill, not just dropped."""
+    inegi_old = {
+        "is_fallback": False,
+        "label": "poblacion_total_placeholder",
+        "Series": [{"INDICADOR": "1002000001", "OBSERVATIONS": [{"TIME_PERIOD": "1990", "OBS_VALUE": "100"}]}],
+    }
+    silver = build_silver_df(spark, [BANXICO_FIXTURE], [inegi_old])
+    wide = build_gold_wide(silver, spark, recent_window_days=400).orderBy("calendar_date").collect()
+
+    # A 401-day window (recent_window_days inclusive of both ends), not
+    # 1990->2026 (~13,000+ days) — the fix bounds the output to a trailing
+    # window off the *latest* observed date, it doesn't only keep the
+    # exact 3 days banxico happens to have data for.
+    assert len(wide) == 401
+    assert all(r["poblacion_total_placeholder"] == 100.0 for r in wide)  # old value forward-filled throughout
+    assert wide[-1]["fx_rate_usd_mxn"] == 18.00  # the latest, real banxico observation
+    assert wide[0]["fx_rate_usd_mxn"] is None  # 400 days earlier, well before banxico's 3 fixture days

@@ -53,7 +53,16 @@ def parse_inegi_record(raw: dict) -> list[dict]:
             period = obs.get("TIME_PERIOD")
             if raw_val in (None, "") or not period:
                 continue
+            # INEGI's TIME_PERIOD grammar varies by indicator frequency:
+            # "YYYY/MM" for monthly series, bare "YYYY" for annual ones
+            # (e.g. historical population). Missing this case used to
+            # silently drop every observation from an annual indicator —
+            # caught only by noticing a real indicator's data never made
+            # it past silver, not from any error (int("") on the missing
+            # month raised ValueError, which the bare `except` swallowed
+            # same as a genuinely malformed period).
             year, _, month = period.partition("/")
+            month = month or "1"
             try:
                 obs_date = dt.date(int(year), int(month), 1)
             except ValueError:
