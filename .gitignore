@@ -6,8 +6,7 @@ __pycache__/
 .pytest_cache/
 data/
 *.duckdb
-*.hyper
-hyperd.log
+tableau/extract/
 airflow/logs/
 minio-data/
 postgres-data/

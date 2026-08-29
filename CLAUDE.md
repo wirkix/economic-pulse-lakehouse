@@ -24,13 +24,14 @@ transform/  silver + gold stages — transform/parse.py (pure-Python bronze
             (both PySpark), transform/spark_session.py, transform/run.py
 query/      query/duckdb_gold.py — DuckDB over local gold Parquet (pulls a
             copy from MinIO first if not already local)
-tableau/    tableau/build_hyper.py (DuckDB gold -> .hyper extract) +
-            REPORT_SPEC.md, the one stage that isn't automated (Tableau
-            Public has no publish API — same situation as project #1's
-            Power BI step, except Tableau Public *does* host the result
-            live once published, so there's no separate hosting step)
+tableau/    tableau/build_extract.py (DuckDB gold -> CSV, not .hyper — see
+            that file's docstring) + REPORT_SPEC.md, the one stage that
+            isn't automated (Tableau Public has no publish API — same
+            situation as project #1's Power BI step, except Tableau
+            Public *does* host the result live once published, so
+            there's no separate hosting step)
 airflow/    dags/economic_pulse_dag.py orchestrates extract -> transform
-            -> build_hyper_extract, daily
+            -> build_tableau_extract, daily
 docker/     airflow.Dockerfile, ca-certs/ (see "Docker build network
             calls" below)
 tests/      pytest — host-runnable (parse, extract fallback, DuckDB) plus
@@ -46,9 +47,9 @@ bundles its own Python + a JDK) — never installed into the host venv, same
 split job-market-radar uses for Airflow/dbt vs. its host Python.
 
 **Relative paths need the right `WORKDIR`.** `transform/run.py`,
-`query/duckdb_gold.py`, and `tableau/build_hyper.py` all default to
-relative paths (`data/...`, `tableau/*.hyper`) meant to resolve against
-the repo root — correct as-is for host-venv runs. The base `apache/airflow`
+`query/duckdb_gold.py`, and `tableau/build_extract.py` all default to
+relative paths (`data/...`, `tableau/extract/...`) meant to resolve
+against the repo root — correct as-is for host-venv runs. The base `apache/airflow`
 image's own `WORKDIR` is `/opt/airflow`, **not** the bind-mounted project
 directory (`/opt/airflow/project`, from `docker-compose.yml`'s
 `.:/opt/airflow/project` volume); without overriding it, those relative
@@ -120,6 +121,21 @@ mechanism is generic, only the cert differs.
   (indicator, date).
 
 ## Known gotchas / history
+
+- **Tableau Public Desktop cannot open `.hyper` extract files** — its file
+  connectors are Excel, CSV/text, JSON, spatial, and statistical files
+  only; raw Hyper extracts need full (paid) Tableau Desktop. The original
+  build of this repo's Tableau step used `tableauhyperapi` to build a
+  `.hyper` file, assuming general Tableau capability without checking the
+  Public-vs-Desktop feature split — wrong, and only caught once a human
+  actually tried opening the file in Tableau Public (nothing in this
+  repo's own testing could have caught it; there's no way to
+  script-verify what a GUI app's file-open dialog accepts). Fixed:
+  `tableau/build_extract.py` exports CSV via DuckDB's own `write_csv`
+  instead — no `tableauhyperapi` dependency at all now. Lesson: when a
+  free/paid product-tier split is plausible, verify the *specific*
+  feature against that product's own docs before designing around it,
+  don't assume from general familiarity with the paid tier.
 
 - The `apache/airflow` base image's entrypoint wraps a bare command as an
   `airflow` subcommand — `docker compose run --rm airflow-scheduler pytest

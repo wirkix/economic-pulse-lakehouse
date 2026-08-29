@@ -39,5 +39,6 @@ MINIO_GOLD_BUCKET = os.getenv("MINIO_GOLD_BUCKET", "gold")
 BANXICO_TOKEN = os.getenv("BANXICO_TOKEN", "")
 INEGI_TOKEN = os.getenv("INEGI_TOKEN", "")
 
-# --- Tableau ---
-TABLEAU_HYPER_PATH = os.getenv("TABLEAU_HYPER_PATH", "tableau/economic_pulse_gold.hyper")
+# --- Tableau (CSV, not .hyper — Tableau Public Desktop's file connectors
+# don't include raw Hyper extracts, only full paid Desktop's do) ---
+TABLEAU_EXPORT_DIR = os.getenv("TABLEAU_EXPORT_DIR", "tableau/extract")

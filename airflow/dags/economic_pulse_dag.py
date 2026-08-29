@@ -1,9 +1,11 @@
 """Economic Pulse Lakehouse: extract (Banxico + INEGI -> MinIO bronze) ->
-transform (PySpark bronze -> silver -> gold) -> build_hyper_extract (DuckDB
-gold -> tableau/*.hyper). Daily schedule — Banxico's FX series updates
-daily, INPC/INEGI series update monthly, so a daily run just re-writes
-unchanged months/observations until the next real release, which is cheap
-and simpler than tracking each series' own cadence.
+transform (PySpark bronze -> silver -> gold) -> build_tableau_extract
+(DuckDB gold -> tableau/extract/*.csv, for Tableau Public — see
+tableau/build_extract.py's docstring for why CSV, not .hyper). Daily
+schedule — Banxico's FX series updates daily, INPC/INEGI series update
+monthly, so a daily run just re-writes unchanged months/observations
+until the next real release, which is cheap and simpler than tracking
+each series' own cadence.
 """
 from __future__ import annotations
 
@@ -36,12 +38,12 @@ def economic_pulse():
         transform_run()
 
     @task
-    def build_hyper_extract(_):
-        from tableau.build_hyper import build
+    def build_tableau_extract(_):
+        from tableau.build_extract import build
 
         return build()
 
-    build_hyper_extract(transform(extract()))
+    build_tableau_extract(transform(extract()))
 
 
 economic_pulse()

@@ -42,8 +42,9 @@ BI visualization, each stage a real, separately-runnable piece.
                  the local gold Parquet directly
                             │
                             ▼
-              tableau/build_hyper.py — DuckDB gold
-                 tables -> a .hyper extract
+              tableau/build_extract.py — DuckDB
+                 gold tables -> CSV (not .hyper —
+                 Tableau Public can't open those)
                             │
                             ▼
             Tableau Public (manual publish — see
@@ -75,7 +76,7 @@ calendar instead of a listings table.
 **Fallback data, not a broken demo.** Both `extract/banxico.py` and
 `extract/inegi.py` fall back to a flagged (`is_fallback: true`), API-shaped
 synthetic response when their token is missing or the call fails — the
-whole pipeline (extract → transform → query → Hyper extract) is buildable
+whole pipeline (extract → transform → query → Tableau CSV export) is buildable
 and runnable today without waiting on INEGI's registration email, same
 convention motor-analytics uses for `BANXICO_TOKEN`.
 
@@ -104,7 +105,7 @@ from the UI, or run each stage by hand:
 ```bash
 docker compose run --rm airflow-scheduler python -m extract.run
 docker compose run --rm airflow-scheduler python -m transform.run
-docker compose run --rm airflow-scheduler python -m tableau.build_hyper
+docker compose run --rm airflow-scheduler python -m tableau.build_extract
 ```
 
 ## Running pieces individually

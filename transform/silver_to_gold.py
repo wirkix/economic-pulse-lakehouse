@@ -1,6 +1,6 @@
 """Silver -> gold: two gold tables, both read straight by DuckDB
-(query/duckdb_gold.py) and by the Tableau Hyper extract build
-(tableau/build_hyper.py).
+(query/duckdb_gold.py) and by the Tableau CSV export
+(tableau/build_extract.py).
 
 - gold_indicators_long: one row per (indicator, obs_date), with
   period-over-period %% change and a 30-calendar-day rolling average —
