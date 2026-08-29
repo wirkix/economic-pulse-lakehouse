@@ -38,10 +38,11 @@ the sheets below (each uses one or the other, not both at once).
 - Bar or line: `obs_date` × `change_pct`.
 
 **3. INEGI indicators** (`indicators_long`, filtered to `source = inegi`)
-- Line: `obs_date` × `value`, colored by `indicator_label`. Placeholder
-  until real INEGI indicator IDs replace the doc-example ID in
-  `extract/inegi.py` (see that file's docstring) — swap this sheet's
-  filter/labels once real data lands.
+- Line: `obs_date` × `value`, colored by `indicator_label`. Currently
+  `poblacion_total_placeholder` (real, but not an economic-pulse metric —
+  INEGI's own doc-example ID) and `desocupados_total` (real, unemployment
+  headcount — see `extract/inegi.py`'s docstring on why it's a headcount
+  and not a rate). IGAE itself is still missing; add it here once found.
 - While `is_fallback = true` for any series in view, add a text callout
   ("synthetic placeholder data — INEGI/Banxico token not yet configured")
   so a visitor never mistakes fallback data for the real thing.

@@ -141,12 +141,12 @@ skips them cleanly instead of erroring.
 
 ## Known limitations
 
-- `extract/inegi.py`'s `INDICATORS` list ships with only INEGI's own
-  documentation example indicator ID (national population) as a
-  placeholder — not IGAE or the unemployment rate. Confirmed pulling real
-  data with a live `INEGI_TOKEN` (`is_fallback: false`, real observations
-  back to 1910), but real IGAE/unemployment codes still need manual lookup
-  — see that file's docstring for what's been tried and ruled out.
+- `extract/inegi.py`'s `INDICATORS` list has national population
+  (placeholder) and `desocupados_total` (real unemployment headcount, not
+  a rate) — both confirmed pulling real data with a live `INEGI_TOKEN`
+  (`is_fallback: false`). IGAE itself (national economic-activity index)
+  is still missing — see that file's docstring for what's been tried and
+  ruled out for finding it.
 - Tableau Public's scheduled-refresh feature needs a paid/Server tier;
   refreshing the published viz with new data is a manual re-publish (see
   `tableau/REPORT_SPEC.md`'s Publish section) — an accepted tradeoff for

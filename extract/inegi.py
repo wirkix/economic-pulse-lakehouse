@@ -9,44 +9,44 @@ URL shape (confirmed from INEGI's own doc example):
   https://www.inegi.org.mx/app/api/indicadores/desarrolladores/jsonxml/
     INDICATOR/{indicator_id}/{lang}/{area_geo}/{recent}/BISE/2.0/{token}?type=json
 
-INDICATORS below ships with only INEGI's own documentation example ID
-(1002000001, national population) as a placeholder — **not** IGAE or the
-unemployment rate. Tried the widely-cited `inegiR` R package's hardcoded
-IDs for those (444612 unemployment, 381016 GDP, 216064 price index) live
-against this endpoint with a real token — all three 400 (confirmed via
-`docker compose run --rm airflow-scheduler python -c "..."`, live INEGI
-API, 2026-08-28) while the doc's own 10-digit example ID succeeds; an open
-inegiR GitHub issue ("Versión 2.0 del API — la versión actual ya no
-funciona") suggests that package's IDs target an older, incompatible API
-version, not this one. Also tried the BIE web UI's own tree
-(inegi.org.mx/app/indicadores) directly: its indicator checkboxes expose
-numeric values too (e.g. IGAE "Series originales" is internally "603588")
-but these are the *web UI's own* internal node IDs, a third, separate
-namespace — also 400s against this endpoint. Neither inegiR's IDs nor the
-BIE tree's own checkbox IDs are usable here; only IDs actually generated
-by the UI's "Consultar API" action (a button on an indicator's own detail/
-chart view, not exposed on the checkbox itself) are confirmed to match
-this endpoint's ID space — that action wasn't reached in this pass (BIE's
-site is JS-heavy enough that browser automation kept timing out screenshots
-mid-flow; worth a fresh, patient attempt or just doing it by hand once).
-So: real codes for THIS endpoint aren't in any public doc/package/tree
-value in a form worth guessing further at — get them from that specific
-"Consultar API" action and update INDICATORS then. Everything downstream
-(transform, tests) is written against the shape of a response, not
-against which indicator produced it, so swapping these in is a one-line
-change here.
+INDICATORS below carries INEGI's own documentation example ID
+(1002000001, national population, annual back to 1910) plus 6200093973
+(desocupados_total), sourced from INEGI's own "Consultar API" action —
+the only ID source that's actually confirmed to match this endpoint's ID
+space. Two other sources were tried and ruled out first: the widely-cited
+`inegiR` R package's hardcoded IDs (444612 unemployment, 381016 GDP,
+216064 price index — all 400, confirmed live 2026-08-28; an open inegiR
+GitHub issue, "Versión 2.0 del API — la versión actual ya no funciona",
+suggests those target an older, incompatible API version) and the BIE web
+UI's own tree-checkbox values (inegi.org.mx/app/indicadores exposes
+numeric values on its checkboxes too, e.g. IGAE "Series originales" is
+internally "603588" — also 400s, a third, separate ID namespace). Still
+missing: IGAE itself (national economic-activity index) — same "Consultar
+API" action, not yet done for that one. Everything downstream (transform,
+tests) is written against the shape of a response, not against which
+indicator produced it, so adding more is a one-line change here.
+
+`6200093973`'s magnitude (~1.6M as of 2026-02, confirmed live) is
+consistent with an absolute headcount (ENOE's "Población desocupada"),
+**not** a percentage unemployment *rate* — labeled `desocupados_total`
+below rather than `tasa_desocupacion` on that basis. Re-verify/relabel if
+that turns out wrong.
 """
 from __future__ import annotations
 
 import requests
 
 BASE_URL = "https://www.inegi.org.mx/app/api/indicadores/desarrolladores/jsonxml/INDICATOR"
-# Five digits, not two — "00" 400s; INEGI's own doc example uses "00000"
-# for "all of Mexico" (confirmed live, 2026-08-28).
+# "00" and "00000" both work identically for "all of Mexico" (confirmed
+# live, 2026-08-29, against a real ID) — an earlier version of this
+# comment claimed "00" 400s; that was a bad inference from a paraphrased
+# search result, never an actual test, and was wrong. Kept as "00000"
+# since that's what INEGI's own doc example uses, not because "00" fails.
 AREA_GEO_NATIONAL = "00000"
 
 INDICATORS = [
     {"id": "1002000001", "label": "poblacion_total_placeholder"},
+    {"id": "6200093973", "label": "desocupados_total"},
 ]
 
 

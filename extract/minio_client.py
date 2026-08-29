@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+import uuid
 from datetime import datetime, timezone
 from typing import Any
 
@@ -41,14 +42,26 @@ def ensure_buckets(client=None) -> None:
             client.create_bucket(Bucket=bucket)
 
 
-def put_json(source: str, payload: dict[str, Any], client=None) -> str:
-    """Writes one bronze object at
-    `bronze/<source>/<source>_<UTC-timestamp>.json` and returns its key.
-    Timestamped, not overwritten — bronze is an append-only raw landing
-    zone; silver/gold decide what "latest" means."""
-    client = client or get_client()
+def bronze_key(source: str) -> str:
+    """`<source>/<source>_<UTC-timestamp>_<8-hex>.json`. The 8-hex suffix
+    matters: extract/run.py calls put_json once per INEGI indicator in a
+    tight loop, easily landing two calls in the same second (second-
+    precision timestamp alone isn't unique enough) — hit in practice, one
+    indicator's real bronze pull silently overwrote another's under the
+    same key, only noticed because the *second* indicator's data never
+    made it past silver despite a logged successful fetch. Split out from
+    put_json so the uniqueness property is unit-testable without a real
+    MinIO client."""
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    key = f"{source}/{source}_{ts}.json"
+    return f"{source}/{source}_{ts}_{uuid.uuid4().hex[:8]}.json"
+
+
+def put_json(source: str, payload: dict[str, Any], client=None) -> str:
+    """Writes one bronze object at the key `bronze_key(source)` builds and
+    returns it. Timestamped, not overwritten — bronze is an append-only
+    raw landing zone; silver/gold decide what "latest" means."""
+    client = client or get_client()
+    key = bronze_key(source)
     client.put_object(
         Bucket=config.MINIO_BRONZE_BUCKET,
         Key=key,
