@@ -37,27 +37,36 @@ the sheets below (each uses one or the other, not both at once).
 `indicator_label = inpc_general`)
 - Bar or line: `obs_date` × `change_pct`.
 
-**3. INEGI indicators** (`indicators_long`, filtered to `source = inegi`)
-- Line: `obs_date` × `value`, colored by `indicator_label`. Currently
-  `poblacion_total_placeholder` (real, but not an economic-pulse metric —
-  INEGI's own doc-example ID) and `desocupados_total` (real, unemployment
-  headcount — see `extract/inegi.py`'s docstring on why it's a headcount
-  and not a rate). IGAE itself is still missing; add it here once found.
+**3. IGAE trend** (`indicators_long`, filtered to `indicator_label =
+igae_ivf`)
+- Line: `obs_date` × `value` — the index level (base 2018=100), same role
+  `fx_rate_usd_mxn` plays in sheet 1.
+- Second line, dual axis (index points don't share a scale with a %):
+  `indicator_label = igae_variacion_anual`'s `value` — INEGI's own
+  official year-over-year %, not this project's generic `change_pct`.
+
+**4. Employment** (`indicators_long`, filtered to `source = inegi` and
+`indicator_label` in (`desempleo_tasa`, `desocupados_total`))
+- Two separate charts, not one combined — `desempleo_tasa` is a
+  percentage (~2-6% range) and `desocupados_total` is a headcount in the
+  millions; sharing an axis would flatten the rate to an invisible line.
+  - Bar or line: `obs_date` × `value`, filtered to `desempleo_tasa`.
+  - Line: `obs_date` × `value`, filtered to `desocupados_total`.
 - While `is_fallback = true` for any series in view, add a text callout
   ("synthetic placeholder data — INEGI/Banxico token not yet configured")
   so a visitor never mistakes fallback data for the real thing.
 
-**4. Snapshot KPIs** (`indicators_wide`, latest `calendar_date` row)
+**5. Snapshot KPIs** (`indicators_wide`, latest `calendar_date` row)
 - Text/BAN tiles: latest `fx_rate_usd_mxn`, latest `inpc_general`, latest
-  INEGI indicator value(s).
+  `igae_ivf`, latest `desempleo_tasa`.
 
 ## Dashboard
 
-Combine all four sheets into one dashboard ("Economic Pulse — México"),
-tiled: KPIs across the top, FX trend and INPC YoY side by side below,
-INEGI indicators full-width at the bottom. Add a caption noting the data
-sources (Banxico SIE API, INEGI Banco de Indicadores) and the refresh
-cadence (manual — see Publish below).
+Combine all five sheets into one dashboard ("Economic Pulse — México"),
+tiled: KPIs across the top, FX trend and INPC YoY side by side below that,
+IGAE trend and Employment side by side at the bottom. Add a caption noting
+the data sources (Banxico SIE API, INEGI Banco de Indicadores) and the
+refresh cadence (manual — see Publish below).
 
 ## Publish
 

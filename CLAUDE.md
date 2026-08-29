@@ -105,11 +105,13 @@ mechanism is generic, only the cert differs.
   `SF43718` (FIX FX rate, daily), `SP1` (INPC general, monthly). Token is
   free, not project-scoped — motor-analytics' `BANXICO_TOKEN` works here
   unchanged.
-- **INEGI indicator IDs in `extract/inegi.py` are placeholders**, not IGAE
-  or the unemployment rate — see that file's docstring. INEGI's API docs
-  don't publish a clean indicator-ID catalog; look codes up at
-  inegi.org.mx/app/indicadores ("Consultar API" on a chosen indicator)
-  once `INEGI_TOKEN` exists.
+- INEGI indicators are all real, sourced from INEGI's own "Consultar API"
+  action (inegi.org.mx/app/indicadores, "Consultar API" on a chosen
+  indicator) — see `extract/inegi.py`'s docstring for the full list and
+  what each one is. **`source` (the URL segment before `2.0`) is
+  genuinely per-indicator, not a constant** — confirmed live, some
+  indicators need `BISE`, others `BIE-BISE`, with no pattern found for
+  which; each `INDICATORS` entry carries its own.
 - Both clients fall back to a flagged (`is_fallback: true`), response-shaped
   synthetic payload when their token is empty or the API call raises —
   `transform/parse.py`'s parsers don't need a separate code path for real
