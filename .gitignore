@@ -11,3 +11,8 @@ airflow/logs/
 minio-data/
 postgres-data/
 .DS_Store
+
+# Tableau Desktop's transient lock/recovery file, created alongside a .twb
+# while it's open and normally cleaned up on close -- not meant to be
+# versioned (same idea as Office's ~$file.docx lock files).
+tableau/~*.twbr
