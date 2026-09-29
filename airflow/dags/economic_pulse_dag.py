@@ -21,6 +21,10 @@ default_args = {"owner": "alois", "retries": 1, "retry_delay": dt.timedelta(minu
     schedule="@daily",
     start_date=dt.datetime(2026, 8, 1),
     catchup=False,
+    # Every run overwrites the same data/silver + data/gold paths, so two
+    # concurrent runs (e.g. a backlog run + today's, right after the
+    # scheduler starts) delete each other's Spark _temporary files.
+    max_active_runs=1,
     default_args=default_args,
     tags=["economic-pulse-lakehouse"],
 )
